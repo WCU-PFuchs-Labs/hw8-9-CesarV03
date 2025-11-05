@@ -1,24 +1,24 @@
 import java.util.*;
 import java.io.*;
-import java.util.Arrays;
 
 public class Generation {
-
     private GPTree[] trees;
     private DataSet dataSet;
+    private NodeFactory factory;
+    private int maxDepth;
     private Random rand;
 
     public Generation(int size, int maxDepth, String fileName) 
-  {
-        this.dataSet = new DataSet(fileName);
+    {
+        this.maxDepth = maxDepth;
         this.rand = new Random();
+        this.dataSet = new DataSet(fileName);
+        Binop[] ops = { new Plus(), new Minus(), new Mult(), new Divide() };
+        this.factory = new NodeFactory(ops, dataSet.getNumIndependantVariables());
         this.trees = new GPTree[size];
 
-        NodeFactory factory = new NodeFactory();
-
         for (int i = 0; i < size; i++) {
-            Node root = factory.getRandomNode(rand, maxDepth);
-            trees[i] = new GPTree(root);
+            trees[i] = new GPTree(factory, maxDepth, rand);
         }
     }
 
@@ -27,43 +27,47 @@ public class Generation {
         for (GPTree tree : trees) {
             tree.evalFitness(dataSet);
         }
-        Arrays.sort(trees);
+        Arrays.sort(trees); 
     }
 
     public ArrayList<GPTree> getTopTen() 
     {
-        ArrayList<GPTree> top = new ArrayList<>();
-        int count = Math.min(10, trees.length);
-        for (int i = 0; i < count; i++) {
-            top.add(trees[i]);
+        ArrayList<GPTree> topTen = new ArrayList<>();
+        int limit = Math.min(10, trees.length);
+        for (int i = 0; i < limit; i++) {
+            topTen.add(trees[i]);
         }
-        return top;
+        return topTen;
     }
 
     public void printBestFitness() 
     {
-        System.out.printf("Best Fitness: %.2f%n", trees[0].getFitness());
+        if (trees.length > 0) {
+            System.out.printf("Best Fitness: %.2f\n", trees[0].getFitness());
+        }
     }
 
     public void printBestTree() 
     {
-        System.out.println("Best Tree: " + trees[0]);
+        if (trees.length > 0) {
+            System.out.println("Best Tree: " + trees[0]);
+        }
     }
 
     public void evolve() 
     {
-        GPTree[] newGen = new GPTree[trees.length];
-        int half = trees.length / 2;
-
-        for (int i = 0; i < half; i++) {
-            GPTree parent1 = trees[rand.nextInt(half)];
-            GPTree parent2 = trees[rand.nextInt(half)];
-            GPTree child1 = (GPTree) parent1.clone();
-            GPTree child2 = (GPTree) parent2.clone();
-            newGen[i * 2] = child1;
-            newGen[i * 2 + 1] = child2;
+        GPTree[] newGeneration = new GPTree[trees.length];
+        for (int i = 0; i < trees.length; i += 2) {
+            int parent1Index = rand.nextInt(trees.length / 2);
+            int parent2Index = rand.nextInt(trees.length / 2);
+            GPTree parent1 = (GPTree) trees[parent1Index].clone();
+            GPTree parent2 = (GPTree) trees[parent2Index].clone();
+            parent1.crossover(parent2, rand);
+            newGeneration[i] = parent1;
+            if (i + 1 < trees.length) {
+                newGeneration[i + 1] = parent2;
+            }
         }
-
-        this.trees = newGen;
+        this.trees = newGeneration;
     }
 }
