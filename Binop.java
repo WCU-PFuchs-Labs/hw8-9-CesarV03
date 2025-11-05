@@ -1,4 +1,8 @@
-public abstract class Binop extends Op {
+public abstract class Binop {
     public abstract double eval(double left, double right);
-    public abstract String toString();
+    public abstract String getOp();
+    public String toString() 
+    {
+        return getOp();
+    }
 }
