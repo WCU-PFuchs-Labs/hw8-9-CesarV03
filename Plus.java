@@ -4,7 +4,7 @@ public class Plus extends Binop {
         return left + right;
     }
 
-    public String toString() 
+    public String getOp() 
     {
         return "+";
     }
