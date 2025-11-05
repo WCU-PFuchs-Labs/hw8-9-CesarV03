@@ -1,57 +1,64 @@
 import java.util.Random;
+
 public class NodeFactory {
+    private int numIndepVars;
+    private Binop[] currentOps;
 
-    private int numIndep;
-    private int numOps;
-
-    public NodeFactory() 
+    public NodeFactory(Binop[] b, int numVars) 
     {
-        this.numIndep = 3; 
-        this.numOps = 4;
+        currentOps = b;
+        numIndepVars = numVars;
     }
 
-    public int numIndep() 
+    public Node getOperator(Random rand) 
     {
-        return numIndep;
+        int r = rand.nextInt(currentOps.length);
+        Binop chosen = currentOps[r];
+        if (chosen instanceof Plus) return new Node(new Plus());
+        if (chosen instanceof Minus) return new Node(new Minus());
+        if (chosen instanceof Mult) return new Node(new Mult());
+        return new Node(new Divide());
     }
 
-    public int numOps() 
+    public int getNumOps() 
     {
-        return numOps;
+        return currentOps.length;
     }
 
-    public Binop getRandomOp(Random rand) 
+    public Node getTerminal(Random rand) 
     {
-        int choice = rand.nextInt(numOps);
-        switch (choice) {
-            case 0: return new Plus();
-            case 1: return new Minus();
-            case 2: return new Mult();
-            default: return new Divide();
-        }
-    }
-
-    public Node getRandomTerminal(Random rand) 
-    {
-        boolean chooseConst = rand.nextBoolean();
-        if (chooseConst) {
-            double value = rand.nextDouble() * 10 - 5;
-            return new Node(new Const(value));
+        int r = rand.nextInt(numIndepVars + 1);
+        if (r < numIndepVars) {
+            return new Node(new Variable(r));
         } else {
-            int index = rand.nextInt(numIndep);
-            return new Node(new Variable(index));
+            return new Node(new Const(rand.nextDouble()));
         }
+    }
+
+    public int getNumIndepVars() 
+    {
+        return numIndepVars;
     }
 
     public Node getRandomNode(Random rand, int maxDepth) 
     {
         if (maxDepth <= 1) {
-            return getRandomTerminal(rand);
+            return getTerminal(rand);
         } else {
             Binop op = getRandomOp(rand);
             Node left = getRandomNode(rand, maxDepth - 1);
             Node right = getRandomNode(rand, maxDepth - 1);
             return new Node(op, left, right);
         }
+    }
+
+    public Binop getRandomOp(Random rand) 
+    {
+        int idx = rand.nextInt(currentOps.length);
+        Binop chosen = currentOps[idx];
+        if (chosen instanceof Plus) return new Plus();
+        if (chosen instanceof Minus) return new Minus();
+        if (chosen instanceof Mult) return new Mult();
+        return new Divide();
     }
 }
