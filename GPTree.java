@@ -7,18 +7,17 @@ public class GPTree implements Collector, Comparable<GPTree>, Cloneable {
     private ArrayList<Node> crossNodes;
     private double fitness;
 
-    public GPTree() 
-    {
-        root = null;
-    }
-
     public GPTree(NodeFactory factory, int maxDepth, Random rand) 
     {
         root = factory.getOperator(rand);
         root.addRandomKids(factory, maxDepth, rand);
     }
 
-    @Override
+    public GPTree(Node root) 
+    {
+        this.root = root;
+    }
+
     public void collect(Node node) 
     {
         if (!node.isLeaf()) {
@@ -28,88 +27,87 @@ public class GPTree implements Collector, Comparable<GPTree>, Cloneable {
 
     public void traverse() 
     {
-        crossNodes = new ArrayList<>();
+        crossNodes = new ArrayList<Node>();
         root.traverse(this);
     }
 
     public String getCrossNodes() 
     {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < crossNodes.size(); i++) {
-            sb.append(crossNodes.get(i).toString());
-            if (i < crossNodes.size() - 1) sb.append(";");
+        int last = crossNodes.size() - 1;
+        for (int i = 0; i < last; i++) {
+            sb.append(crossNodes.get(i).toString()).append(";");
         }
+        if (last >= 0) sb.append(crossNodes.get(last).toString());
         return sb.toString();
     }
 
-    public void crossover(GPTree other, Random rand) 
+    public void crossover(GPTree tree, Random rand) 
     {
         this.traverse();
-        other.traverse();
-        if (this.crossNodes.isEmpty() || other.crossNodes.isEmpty()) return;
-
+        tree.traverse();
+        if (this.crossNodes.isEmpty() || tree.crossNodes.isEmpty()) return;
         int thisPoint = rand.nextInt(this.crossNodes.size());
-        int otherPoint = rand.nextInt(other.crossNodes.size());
+        int treePoint = rand.nextInt(tree.crossNodes.size());
         boolean left = rand.nextBoolean();
 
         Node thisTrunk = crossNodes.get(thisPoint);
-        Node otherTrunk = other.crossNodes.get(otherPoint);
+        Node treeTrunk = tree.crossNodes.get(treePoint);
 
         if (left) {
-            thisTrunk.swapLeft(otherTrunk);
+            thisTrunk.swapLeft(treeTrunk);
         } else {
-            thisTrunk.swapRight(otherTrunk);
+            thisTrunk.swapRight(treeTrunk);
         }
     }
 
-    public void evalFitness(DataSet dataSet) {
-        double totalError = 0.0;
+    public void evalFitness(DataSet dataSet) 
+    {
+        double total = 0.0;
         for (DataRow row : dataSet.getRows()) {
-            double predicted = this.eval(row.getIndependentVariables());
-            double actual = row.getDependentVariable();
-            double diff = predicted - actual;
-            totalError += diff * diff;
+            double[] x = row.getIndependentVariables();
+            double y = row.getDependentVariable();
+            double pred = root.eval(x);
+            double diff = pred - y;
+            total += diff * diff;
         }
-        fitness = totalError;
+        this.fitness = total;
     }
 
-    public double getFitness() {
-        return fitness;
+    public double getFitness() { return fitness; }
+
+    @Override
+    public int compareTo(GPTree t) 
+    {
+        return Double.compare(this.fitness, t.fitness);
     }
 
     @Override
-    public int compareTo(GPTree other) {
-        if (this.fitness < other.fitness) return -1;
-        if (this.fitness > other.fitness) return 1;
-        return 0;
-    }
-
-    @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o) 
+    {
         if (o == null || !(o instanceof GPTree)) return false;
-        GPTree other = (GPTree) o;
-        return this.compareTo(other) == 0;
+        return this.compareTo((GPTree) o) == 0;
     }
 
     @Override
-    public Object clone() {
+    public Object clone() 
+    {
         try {
-            GPTree copy = (GPTree) super.clone();
-            if (this.root != null) {
-                copy.root = (Node) this.root.clone();
-            }
-            return copy;
+            GPTree g = (GPTree) super.clone();
+            if (this.root != null) g.root = (Node) this.root.clone();
+            return g;
         } catch (CloneNotSupportedException e) {
             return null;
         }
     }
 
-    public double eval(double[] data) {
+    public double eval(double[] data) 
+    {
         return root.eval(data);
     }
 
-    @Override
-    public String toString() {
+    public String toString() 
+    {
         return root.toString();
     }
 }
