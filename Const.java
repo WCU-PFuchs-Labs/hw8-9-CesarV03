@@ -1,12 +1,12 @@
-public class Const extends Unop {
+public class Const {
     private double value;
 
-    public Const(double v) 
+    public Const(double value) 
     {
-        value = v;
+        this.value = value;
     }
 
-    public double eval(double[] values) 
+    public double eval(double[] data) 
     {
         return value;
     }
