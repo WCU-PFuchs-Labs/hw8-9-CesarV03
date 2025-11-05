@@ -1,18 +1,18 @@
-public class Variable extends Unop {
+public class Variable {
     private int index;
 
-    public Variable(int i) 
+    public Variable(int index) 
     {
-        index = i;
+        this.index = index;
     }
 
-    public double eval(double[] values) 
+    public double eval(double[] data) 
     {
-        return values[index];
+        return data[index];
     }
 
     public String toString() 
     {
-        return "X" + index;
+        return "x" + index;
     }
 }
