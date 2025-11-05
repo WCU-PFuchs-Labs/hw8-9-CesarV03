@@ -1,45 +1,57 @@
 import java.util.Random;
-// Used help with clone here https://www.geeksforgeeks.org/java/clone-method-in-java-2/
 public class NodeFactory {
-    private int numIndepVars;
-    private Binop[] currentOps;
 
-    public NodeFactory(Binop[] b, int numVars) 
+    private int numIndep;
+    private int numOps;
+
+    public NodeFactory() 
     {
-        currentOps = b;
-        numIndepVars = numVars;
+        this.numIndep = 3; 
+        this.numOps = 4;
     }
 
-    public Node getOperator(Random rand) 
+    public int numIndep() 
     {
-        int r = rand.nextInt(currentOps.length);
-        Binop op = (Binop) currentOps[r].clone();
-        Node node = new Node(op);
-        return node;
+        return numIndep;
     }
 
-    public int getNumOps() 
+    public int numOps() 
     {
-        return currentOps.length;
+        return numOps;
     }
 
-    public Node getTerminal(Random rand) 
+    public Binop getRandomOp(Random rand) 
     {
-        int r = rand.nextInt(numIndepVars + 1);
-        if (r < numIndepVars) {
-            Variable v = new Variable(r);
-            Node n = new Node(v);
-            return n;
-        } else {
-            double val = rand.nextDouble();
-            Const c = new Const(val);
-            Node n = new Node(c);
-            return n;
+        int choice = rand.nextInt(numOps);
+        switch (choice) {
+            case 0: return new Plus();
+            case 1: return new Minus();
+            case 2: return new Mult();
+            default: return new Divide();
         }
     }
 
-    public int getNumIndepVars() 
+    public Node getRandomTerminal(Random rand) 
     {
-        return numIndepVars;
+        boolean chooseConst = rand.nextBoolean();
+        if (chooseConst) {
+            double value = rand.nextDouble() * 10 - 5;
+            return new Node(new Const(value));
+        } else {
+            int index = rand.nextInt(numIndep);
+            return new Node(new Variable(index));
+        }
+    }
+
+    public Node getRandomNode(Random rand, int maxDepth) 
+    {
+        if (maxDepth <= 1) {
+            return getRandomTerminal(rand);
+        } else {
+            Binop op = getRandomOp(rand);
+            Node left = getRandomNode(rand, maxDepth - 1);
+            Node right = getRandomNode(rand, maxDepth - 1);
+            return new Node(op, left, right);
+        }
     }
 }
