@@ -4,7 +4,7 @@ public class Minus extends Binop {
         return left - right;
     }
 
-    public String toString() 
+    public String getOp() 
     {
         return "-";
     }
