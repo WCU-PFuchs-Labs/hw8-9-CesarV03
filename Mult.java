@@ -4,7 +4,7 @@ public class Mult extends Binop {
         return left * right;
     }
 
-    public String toString() 
+    public String getOp() 
     {
         return "*";
     }
